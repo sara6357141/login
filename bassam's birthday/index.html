@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Album Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      text-align: center;
+      padding: 50px;
+    }
+
+    /* Styling for the login box */
+    .login-box {
+      background-color: white;
+      padding: 40px; /* Increased padding for a larger box */
+      border-radius: 10px;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      margin-top: 50px;
+      width: 400px; /* Increased width */
+    }
+
+    input[type="text"], input[type="password"] {
+      padding: 15px; /* Increased padding for larger input fields */
+      width: 100%;
+      margin: 15px 0; /* Increased margin between input fields */
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px; /* Increased font size for input fields */
+    }
+
+    /* Bigger button styling */
+    button {
+      padding: 20px 40px; /* Larger padding for bigger button */
+      font-size: 18px; /* Increased font size for the button */
+      background-color: #5cb85c;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%; /* Full-width button */
+    }
+
+    button:hover {
+      background-color: #4cae4c;
+    }
+
+    /* Larger title */
+    h2 {
+      font-size: 28px; /* Larger title */
+      margin-bottom: 20px;
+    }
+
+    /* Styling for "Show Password" checkbox */
+    #show-password {
+      margin-top: 10px;
+    }
+
+    #show-password + label {
+      font-size: 16px;
+    }
+
+    #error-msg {
+      color: red;
+      font-size: 16px;
+    }
+
+    .album {
+      margin-top: 30px;
+      display: none;
+    }
+
+    .photo-container {
+      display: inline-block;
+      position: relative;
+      margin: 10px;
+    }
+
+    img {
+      max-width: 300px;
+      max-height: 300px;
+      object-fit: cover;
+    }
+
+    /* Adjusted position and size of menu button */
+    .menu-btn {
+      position: absolute;
+      top: 5px;
+      left: 5px; /* Moved to far left */
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    /* Smaller delete button */
+    .delete-btn {
+      display: none;
+      position: absolute;
+      top: 5px;
+      left: 30px; /* Adjusted position to be closer to menu button */
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      padding: 2px 6px; /* Smaller padding */
+      font-size: 12px; /* Smaller font size */
+    }
+
+    .menu-btn:focus + .delete-btn {
+      display: inline-block;
+    }
+
+    .upload-box {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login</h2>
+    <form id="login-form">
+      <input type="text" id="username" placeholder="Username" required><br>
+      <input type="password" id="password" placeholder="Password" required><br>
+      <input type="checkbox" id="show-password"> Show Password<br><br>
+      <button type="submit">Login</button>
+    </form>
+    <p id="error-msg"></p>
+  </div>
+
+  <div class="album">
+    <h2>Your Photo Album</h2>
+    <div id="album-photos"></div>
+
+    <div class="upload-box">
+      <h3>Upload a New Photo</h3>
+      <input type="file" id="file-input" accept="image/*"><br>
+      <button id="upload-button">Upload Photo</button>
+      <p id="upload-msg"></p>
+    </div>
+  </div>
+
+  <script>
+    // Toggle show/hide password
+    document.getElementById("show-password").addEventListener("change", function() {
+      const passwordField = document.getElementById("password");
+      passwordField.type = this.checked ? "text" : "password";
+    });
+
+    // Login logic
+    document.getElementById("login-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (username === "figlaya" && password === "3booott3451") {
+        document.querySelector(".login-box").style.display = "none";
+        document.querySelector(".album").style.display = "block";
+        loadPhotosFromLocalStorage(); // Load saved photos on login
+      } else {
+        document.getElementById("error-msg").textContent = "Invalid username or password!";
+      }
+    });
+
+    // Upload photo logic
+    document.getElementById("upload-button").addEventListener("click", function() {
+      const fileInput = document.getElementById("file-input");
+      const albumPhotos = document.getElementById("album-photos");
+      const uploadMsg = document.getElementById("upload-msg");
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+          const photoData = e.target.result;
+          addPhotoToAlbum(photoData);
+          savePhotoToLocalStorage(photoData);
+          uploadMsg.textContent = "Photo uploaded successfully!";
+        };
+
+        reader.readAsDataURL(file);
+      } else {
+        uploadMsg.textContent = "Please select a photo to upload!";
+      }
+    });
+
+    // Add a photo to the album
+    function addPhotoToAlbum(photoData) {
+      const albumPhotos = document.getElementById("album-photos");
+
+      const photoContainer = document.createElement("div");
+      photoContainer.classList.add("photo-container");
+
+      const img = document.createElement("img");
+      img.src = photoData;
+
+      const menuBtn = document.createElement("button");
+      menuBtn.classList.add("menu-btn");
+      menuBtn.innerHTML = "&#x22EE;"; // Three dots
+      menuBtn.onclick = function() {
+        const deleteBtn = this.nextElementSibling;
+        deleteBtn.style.display = deleteBtn.style.display === "none" ? "inline-block" : "none";
+      };
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.classList.add("delete-btn");
+      deleteBtn.textContent = "X";
+      deleteBtn.onclick = function() {
+        deletePhoto(deleteBtn, photoData);
+      };
+
+      photoContainer.appendChild(menuBtn);
+      photoContainer.appendChild(deleteBtn);
+      photoContainer.appendChild(img);
+      albumPhotos.appendChild(photoContainer);
+    }
+
+    // Save photo to localStorage
+    function savePhotoToLocalStorage(photoData) {
+      let photos = JSON.parse(localStorage.getItem("albumPhotos")) || [];
+      photos.push(photoData);
+      localStorage.setItem("albumPhotos", JSON.stringify(photos));
+    }
+
+    // Load photos from localStorage
+    function loadPhotosFromLocalStorage() {
+      const photos = JSON.parse(localStorage.getItem("albumPhotos")) || [];
+      photos.forEach(photoData => {
+        addPhotoToAlbum(photoData);
+      });
+    }
+
+    // Delete a photo from the album and localStorage
+    function deletePhoto(button, photoData) {
+      const photoContainer = button.parentElement;
+      photoContainer.remove();
+
+      let photos = JSON.parse(localStorage.getItem("albumPhotos")) || [];
+      photos = photos.filter(photo => photo !== photoData); // Remove the deleted photo
+      localStorage.setItem("albumPhotos", JSON.stringify(photos));
+    }
+
+    // On page load, if the user has already logged in (you can improve this logic)
+    window.onload = function() {
+      if (document.querySelector(".album").style.display === "block") {
+        loadPhotosFromLocalStorage(); // Load photos automatically if the album is visible
+      }
+    };
+  </script>
+</body>
+</html>
